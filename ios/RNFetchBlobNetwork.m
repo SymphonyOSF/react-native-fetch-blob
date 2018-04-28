@@ -72,7 +72,7 @@ typedef NS_ENUM(NSUInteger, ResponseFormat) {
 {
     BOOL * respFile;
     BOOL isNewPart;
-    BOOL * isIncrement;
+    BOOL isIncrement;
     NSMutableData * partBuffer;
     NSString * destPath;
     NSOutputStream * writeStream;
