@@ -442,7 +442,11 @@ NSOperationQueue *taskQueue;
 
     if(respFile == NO)
     {
-        [respData appendData:data];
+        // IOSP-5765 - when in incremental mode, the summation of the individual chunkString is the
+        //   response itself, therefore it will be unnecessary to keep the large respData in memory
+        if (!isIncrement) {
+            [respData appendData:data];
+        }
     }
     else
     {
@@ -452,7 +456,8 @@ NSOperationQueue *taskQueue;
     if(expectedBytes == 0)
         return;
     NSNumber * now =[NSNumber numberWithFloat:((float)receivedBytes/(float)expectedBytes)];
-    if(pconfig != nil && [pconfig shouldReport:now])
+    // IOSP-5765 - always dispatch progress events to ensure no chunkString is missed
+    if (isIncrement || (pconfig != nil && [pconfig shouldReport:now]))
     {
         [self.bridge.eventDispatcher
          sendDeviceEventWithName:EVENT_PROGRESS
