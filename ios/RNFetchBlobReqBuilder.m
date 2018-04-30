@@ -67,7 +67,8 @@
                 }
                 // set content-length
                 [mheaders setValue:[NSString stringWithFormat:@"%lu",[postData length]] forKey:@"Content-Length"];
-                [mheaders setValue:@"100-continue" forKey:@"Expect"];
+                // IOSP-5832 - oddly, EI BE returns random numbers making json invalid when this header is present
+                // [mheaders setValue:@"100-continue" forKey:@"Expect"];
                 // appaned boundary to content-type
                 [mheaders setValue:[NSString stringWithFormat:@"multipart/form-data; charset=utf-8; boundary=%@", boundary] forKey:@"content-type"];
                 [request setHTTPMethod: method];
