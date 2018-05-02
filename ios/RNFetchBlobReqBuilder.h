@@ -11,6 +11,10 @@
 
 #import <Foundation/Foundation.h>
 
+@protocol RNFetchBlobCustomFile <NSObject>
+-(void) readFile:(NSString *)content onComplete:(void(^)(NSData * formData, NSString *error))onComplete;
+@end
+
 @interface RNFetchBlobReqBuilder : NSObject;
 
 +(void) buildMultipartRequest:(NSDictionary *)options

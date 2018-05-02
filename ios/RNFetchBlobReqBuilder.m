@@ -241,8 +241,22 @@
                             getFieldData = nil;
                         }
                     };
+
+                    // Example prefix: RNFetchBlob-custom:SMCryptoFile://cmxkCg==@/Containers/Data/Application/Cache/112233.jpg
+                    NSRange matchRange = NSMakeRange(0, [content length]);
+                    NSRegularExpression* regex =
+                        [NSRegularExpression regularExpressionWithPattern:@"^RNFetchBlob-custom:([a-zA-z]+)://"
+                                                                  options:0
+                                                                    error:nil];
+                    NSArray<NSTextCheckingResult *>* matches = [regex matchesInString:content options:0 range:matchRange];
+                    if ([matches count] >= 1) {
+                        NSString *customClassName = [content substringWithRange:[matches[0] rangeAtIndex:1]];
+                        id<RNFetchBlobCustomFile> fileReader = [[NSClassFromString(customClassName) alloc] init];
+                        [fileReader readFile:content onComplete:afterReadFile];
+                        return;
+                    }
                     // append data from file asynchronously
-                    if([content hasPrefix:FILE_PREFIX])
+                    else if([content hasPrefix:FILE_PREFIX])
                     {
                         NSString * orgPath = [content substringFromIndex:[FILE_PREFIX length]];
                         orgPath = [RNFetchBlobFS getPathOfAsset:orgPath];
