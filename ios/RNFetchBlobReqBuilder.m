@@ -217,36 +217,37 @@
                 NSMutableData * blobData;
                 if(content != nil)
                 {
+                    void (^afterReadFile)(NSData *content, NSString * err) = ^(NSData *content, NSString * err) {
+                        if(err != nil)
+                        {
+                            onComplete(formData, YES);
+                            return;
+                        }
+                        NSString * filename = [field valueForKey:@"filename"];
+                        [formData appendData:[[NSString stringWithFormat:@"--%@\r\n", boundary] dataUsingEncoding:NSUTF8StringEncoding]];
+                        [formData appendData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"; filename=\"%@\"\r\n", name, filename] dataUsingEncoding:NSUTF8StringEncoding]];
+                        [formData appendData:[[NSString stringWithFormat:@"Content-Type: %@\r\n\r\n", contentType] dataUsingEncoding:NSUTF8StringEncoding]];
+                        [formData appendData:content];
+                        [formData appendData:[[NSString stringWithFormat:@"\r\n"] dataUsingEncoding:NSUTF8StringEncoding]];
+                        i++;
+                        if(i < count)
+                        {
+                            __block NSDictionary * nextField = [form objectAtIndex:i];
+                            getFieldData(nextField);
+                        }
+                        else
+                        {
+                            onComplete(formData, NO);
+                            getFieldData = nil;
+                        }
+                    };
                     // append data from file asynchronously
                     if([content hasPrefix:FILE_PREFIX])
                     {
                         NSString * orgPath = [content substringFromIndex:[FILE_PREFIX length]];
                         orgPath = [RNFetchBlobFS getPathOfAsset:orgPath];
 
-                        [RNFetchBlobFS readFile:orgPath encoding:nil onComplete:^(NSData *content, NSString * err) {
-                            if(err != nil)
-                            {
-                                onComplete(formData, YES);
-                                return;
-                            }
-                            NSString * filename = [field valueForKey:@"filename"];
-                            [formData appendData:[[NSString stringWithFormat:@"--%@\r\n", boundary] dataUsingEncoding:NSUTF8StringEncoding]];
-                            [formData appendData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"; filename=\"%@\"\r\n", name, filename] dataUsingEncoding:NSUTF8StringEncoding]];
-                            [formData appendData:[[NSString stringWithFormat:@"Content-Type: %@\r\n\r\n", contentType] dataUsingEncoding:NSUTF8StringEncoding]];
-                            [formData appendData:content];
-                            [formData appendData:[[NSString stringWithFormat:@"\r\n"] dataUsingEncoding:NSUTF8StringEncoding]];
-                            i++;
-                            if(i < count)
-                            {
-                                __block NSDictionary * nextField = [form objectAtIndex:i];
-                                getFieldData(nextField);
-                            }
-                            else
-                            {
-                                onComplete(formData, NO);
-                                getFieldData = nil;
-                            }
-                        }];
+                        [RNFetchBlobFS readFile:orgPath encoding:nil onComplete:afterReadFile];
                         return ;
                     }
                     else
