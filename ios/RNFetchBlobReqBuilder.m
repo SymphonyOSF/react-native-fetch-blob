@@ -251,7 +251,12 @@
                     NSArray<NSTextCheckingResult *>* matches = [regex matchesInString:content options:0 range:matchRange];
                     if ([matches count] >= 1) {
                         NSString *customClassName = [content substringWithRange:[matches[0] rangeAtIndex:1]];
-                        id<RNFetchBlobCustomFile> fileReader = [[NSClassFromString(customClassName) alloc] init];
+                        Class customClass = NSClassFromString(customClassName);
+                        if (customClass == nil) {
+                            onComplete(formData, YES);
+                            return;
+                        }
+                        id<RNFetchBlobCustomFile> fileReader = [[customClass alloc] init];
                         [fileReader readFile:content onComplete:afterReadFile];
                         return;
                     }
